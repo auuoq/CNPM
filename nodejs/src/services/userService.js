@@ -1,6 +1,9 @@
 import db from "../models/index"
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs'
+import { Op } from 'sequelize'
+import emailService from './emailService'
 
+const crypto = require('crypto');
 const salt = bcrypt.genSaltSync(10);
 
 let hashUserPassword = (password) => {
@@ -210,7 +213,7 @@ let updateUserData = (data) => {
      */
     return new Promise(async (resolve, reject) => {
         try {
-            if (!data.id || !data.roleId || !data.positionId || !data.gender) {
+            if (!data.id || !data.roleId || !data.gender) {
                 resolve({
                     errCode: 2,
                     errMessage: 'Missing required parameters'
@@ -361,10 +364,25 @@ const getDepositInfo = async (appointmentId) => {
                         }
                     ],
                 },
+                {
+                    model: db.User,
+                    as: 'doctorData',
+                    attributes: ['lastName', 'firstName', 'image'], 
+                },
             ],
             raw: false,
             nest: true
         });
+
+        // Chuyển đổi image sang binary cho từng booking
+        if (bookings && bookings.length > 0) {
+            bookings = bookings.map(booking => {
+                if (booking.doctorData && booking.doctorData.image) {
+                    booking.doctorData.image = Buffer.from(booking.doctorData.image, 'base64').toString('binary');
+                }
+                return booking;
+            });
+        }
 
         return {
             errCode: 0,
@@ -375,8 +393,148 @@ const getDepositInfo = async (appointmentId) => {
         console.error('Error in getDepositInfo service:', error);
         throw error; // Đảm bảo lỗi được ném ra để hàm API có thể xử lý
     }
-}
+};
 
+let handleSendPasswordResetEmail = (email) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!email) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: 'Thiếu email!'
+                });
+            }
+
+            let user = await db.User.findOne({ where: { email: email } });
+            if (!user) {
+                return resolve({
+                    errCode: -1,
+                    errMessage: 'Email trên chưa được sử dụng'
+                });
+            }
+
+            // Tạo token đặt lại mật khẩu
+            const resetToken = crypto.randomBytes(32).toString('hex');
+            const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+            // Lưu token và thời hạn vào user
+            user.resetPasswordToken = resetPasswordToken;
+            user.resetPasswordExpires = Date.now() + 3600000; // 1 giờ
+            await user.save();
+
+            // Gửi email đặt lại mật khẩu
+            const resetUrl = `http://localhost:3002/reset-password/${resetToken}`;
+
+            await emailService.sendPasswordResetEmail({
+                receiverEmail: user.email,
+                patientName: user.firstName + ' ' + user.lastName,
+                redirectLink: resetUrl,
+                language: 'vi' // hoặc 'en'
+            });
+
+            resolve({
+                errCode: 0,
+                errMessage: 'một liên kết đặt lại mật khẩu đã được gửi.'
+            });
+        } catch (e) {
+            console.error('Error in handleSendPasswordResetEmail:', e);
+            reject(e);
+        }
+    });
+};
+
+let handleResetPassword = (token, newPassword) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!token || !newPassword) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: 'Thiếu tham số cần thiết!'
+                });
+            }
+
+            // Hash token để so sánh với token đã lưu trong database
+            let resetPasswordToken = crypto
+                .createHash('sha256')
+                .update(token)
+                .digest('hex');
+
+            // Tìm người dùng với token và kiểm tra token còn hạn không
+            let user = await db.User.findOne({
+                where: {
+                    resetPasswordToken: resetPasswordToken,
+                    resetPasswordExpires: {
+                        [Op.gt]: Date.now()
+                    }
+                }
+            });
+
+            if (!user) {
+                return resolve({
+                    errCode: 2,
+                    errMessage: 'Token không hợp lệ hoặc đã hết hạn.'
+                });
+            }
+
+            // Hash mật khẩu mới
+            let hashPasswordFromBcrypt = await bcrypt.hash(newPassword, 10);
+
+            // Cập nhật mật khẩu và xóa token đặt lại
+            user.password = hashPasswordFromBcrypt;
+            user.resetPasswordToken = null;
+            user.resetPasswordExpires = null;
+            await user.save();
+
+            resolve({
+                errCode: 0,
+                errMessage: 'Đặt lại mật khẩu thành công!'
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
+let handleChangePassword = (userId, currentPassword, newPassword) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Find the user by ID
+            let user = await db.User.findOne({
+                where: { id: userId },
+            });
+
+            if (!user) {
+                return resolve({
+                    errCode: 1,
+                    errMessage: "User not found!",
+                });
+            }
+
+            // Check if the current password matches the hashed password in the database
+            let isPasswordCorrect = await bcrypt.compareSync(currentPassword, user.password);
+            if (!isPasswordCorrect) {
+                return resolve({
+                    errCode: 2,
+                    errMessage: "Current password is incorrect!",
+                });
+            }
+
+            // Hash the new password
+            let hashPasswordFromBcrypt = await bcrypt.hash(newPassword, 10);
+
+            // Update the user's password
+            user.password = hashPasswordFromBcrypt;
+            await user.save();
+
+            resolve({
+                errCode: 0,
+                errMessage: "Password updated successfully!",
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
 
 
 
@@ -390,5 +548,8 @@ module.exports = {
     getUserInfoByEmail: getUserInfoByEmail,
     getUserBookings: getUserBookings,
     deleteAppointment: deleteAppointment,
-    getDepositInfo: getDepositInfo
+    getDepositInfo: getDepositInfo,
+    handleResetPassword: handleResetPassword,
+    handleSendPasswordResetEmail: handleSendPasswordResetEmail,
+    handleChangePassword: handleChangePassword
 }

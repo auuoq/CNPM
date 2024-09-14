@@ -2,12 +2,11 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import './DoctorSchedule.scss';
 import moment from 'moment';
-import localization from 'moment/locale/vi';
 import { LANGUAGES } from '../../../utils';
-import { getScheduleDoctorByDate } from '../../../services/userService';
+import { getScheduleDoctorByDate, getUserInfoByEmail } from '../../../services/userService';
 import { FormattedMessage } from 'react-intl';
-import { Fragment } from 'react';
 import BookingModal from './Modal/BookingModal';
+import { push } from 'connected-react-router';
 
 class DoctorSchedule extends Component {
 
@@ -20,7 +19,7 @@ class DoctorSchedule extends Component {
             dataScheduleTimeModal: {}
         }
     }
-
+    
     async componentDidMount() {
         let { language } = this.props;
         let allDays = this.getArrDays(language);
@@ -107,12 +106,31 @@ class DoctorSchedule extends Component {
         }
     }
 
-    handleClickScheduleTime = (time) => {
-        this.setState({
-            isOpenModalBooking: true,
-            dataScheduleTimeModal: time
-        })
-        // console.log("check time: ", time);
+    handleClickScheduleTime = async (time) => {
+        if (time.currentNumber >= time.maxNumber) {
+            return; // Do nothing if the schedule is full
+        }
+        if (this.props.isLoggedIn) {
+            try {
+                // Fetch user info using the API
+                let email = this.props.userInfo.email; // Assuming userInfo is in the props after login
+                let userData = await getUserInfoByEmail(email);
+    
+                if (userData && userData.errCode === 0) {
+                    // Update state with both schedule time and user data
+                    this.setState({
+                        isOpenModalBooking: true,
+                        dataScheduleTimeModal: time,
+                        userData: userData.data  // Store the fetched user data
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+            }
+        } else {
+            // If not logged in, redirect to login page
+            this.props.navigate('/user-login');
+        }
     }
 
     closeBookingModal = () => {
@@ -155,15 +173,20 @@ class DoctorSchedule extends Component {
                                         {allAvailableTime.map((item, index) => {
                                             let timeDisplay = language === LANGUAGES.VI ?
                                                 item.timeTypeData.valueVi : item.timeTypeData.valueEn;
+                                            
+                                            // Check if the schedule is full
+                                            let isFull = item.currentNumber >= item.maxNumber;
+
                                             return (
                                                 <button
                                                     key={index}
-                                                    className={language === LANGUAGES.VI ? 'btn-vie' : 'btn-en'}
-                                                    onClick={() => this.handleClickScheduleTime(item)}
+                                                    className={`time-slot-btn ${isFull ? 'full' : ''}`}  // Thêm class 'full' nếu lịch đầy
+                                                    onClick={() => !isFull && this.handleClickScheduleTime(item)}  // Vô hiệu hóa khi đầy
+                                                    disabled={isFull}  // Vô hiệu hóa nút nếu lịch đầy
                                                 >
-                                                    {timeDisplay}
+                                                    {timeDisplay} {isFull ? '(Đầy)' : ''}
                                                 </button>
-                                            )
+                                            );
                                         })}
                                     </div>
 
@@ -187,6 +210,7 @@ class DoctorSchedule extends Component {
                     isOpenModal={isOpenModalBooking}
                     closeBookingModal={this.closeBookingModal}
                     dataTime={dataScheduleTimeModal}
+                    userData={this.state.userData}
                 />
             </>
         );
@@ -196,11 +220,15 @@ class DoctorSchedule extends Component {
 const mapStateToProps = state => {
     return {
         language: state.app.language,
+        isLoggedIn: state.user.isLoggedIn,
+        userInfo: state.user.userInfo
     };
 };
 
 const mapDispatchToProps = dispatch => {
     return {
+        navigate: (path) => dispatch(push(path)),
+        
     };
 };
 

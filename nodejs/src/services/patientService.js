@@ -13,15 +13,12 @@ let postBookAppointment = (data) => {
         try {
             if (!data.email || !data.doctorId || !data.timeType
                 || !data.date || !data.fullName || !data.selectedGender
-                || !data.address
-
-            ) {
+                || !data.address || !data.reason) {  // Check for the reason
                 resolve({
                     errCode: 1,
                     errMessage: 'Missing parameter'
-                })
+                });
             } else {
-
                 let token = uuidv4();
                 await emailService.sendSimpleEmail({
                     receiverEmail: data.email,
@@ -30,9 +27,9 @@ let postBookAppointment = (data) => {
                     doctorName: data.doctorName,
                     language: data.language,
                     redirectLink: buildUrlEmail(data.doctorId, token)
-                })
+                });
 
-                //upsert patient    
+                // Upsert patient    
                 let user = await db.User.findOrCreate({
                     where: { email: data.email },
                     defaults: {
@@ -41,13 +38,12 @@ let postBookAppointment = (data) => {
                         gender: data.selectedGender,
                         address: data.address,
                         firstName: data.fullName
-
-                    },
+                    }
                 });
 
-                //create a booking record
+                // Create a booking record
                 if (user && user[0]) {
-                    await db.Booking.findOrCreate({
+                    let booking = await db.Booking.findOrCreate({
                         where: {
                             patientId: user[0].id,
                             doctorId: data.doctorId,
@@ -59,9 +55,26 @@ let postBookAppointment = (data) => {
                             patientId: user[0].id,
                             date: data.date,
                             timeType: data.timeType,
-                            token: token
+                            token: token,
+                            reason: data.reason   // Save the reason in the booking record
                         }
-                    })
+                    });
+
+                    // Nếu booking thành công, tăng currentNumber trong bảng Schedule
+                    if (booking && booking[1] === true) {  // Check if a new booking was created
+                        let schedule = await db.Schedule.findOne({
+                            where: {
+                                doctorId: data.doctorId,
+                                date: data.date,
+                                timeType: data.timeType
+                            }
+                        });
+
+                        if (schedule) {
+                            schedule.currentNumber += 1; // Tăng currentNumber
+                            await schedule.save(); // Lưu thay đổi vào database
+                        }
+                    }
                 }
 
                 resolve({
@@ -69,12 +82,13 @@ let postBookAppointment = (data) => {
                     errMessage: 'Save infor patient succeed!'
                 });
             }
-
         } catch (e) {
             reject(e);
         }
-    })
-}
+    });
+};
+
+
 
 let postVerifyBookAppointment = (data) => {
     return new Promise(async (resolve, reject) => {

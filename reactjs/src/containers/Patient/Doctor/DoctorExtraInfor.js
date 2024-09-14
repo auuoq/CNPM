@@ -4,8 +4,6 @@ import './DoctorExtraInfor.scss';
 import { LANGUAGES } from '../../../utils';
 import { getExtraInforDoctorById } from '../../../services/userService';
 import { FormattedMessage } from 'react-intl';
-// import NumberFormat from 'react-number-format';
-
 
 class DoctorExtraInfor extends Component {
 
@@ -29,9 +27,6 @@ class DoctorExtraInfor extends Component {
     }
 
     async componentDidUpdate(prevProps, prevState, snapShot) {
-        if (this.props.language !== prevProps.language) {
-
-        }
         if (this.props.doctorIdFromParent !== prevProps.doctorIdFromParent) {
             let res = await getExtraInforDoctorById(this.props.doctorIdFromParent);
             if (res && res.errCode === 0) {
@@ -48,10 +43,19 @@ class DoctorExtraInfor extends Component {
         })
     }
 
-
     render() {
         let { isShowDetailInfor, extraInfor } = this.state;
         let { language } = this.props;
+
+        // Tính toán giá ngoài giờ, thêm 50%
+        let priceVi = extraInfor && extraInfor.priceTypeData && extraInfor.priceTypeData.valueVi
+            ? extraInfor.priceTypeData.valueVi * 1.5
+            : 0;
+
+        let priceEn = extraInfor && extraInfor.priceTypeData && extraInfor.priceTypeData.valueEn
+            ? extraInfor.priceTypeData.valueEn * 1.5
+            : 0;
+
         return (
             <div className="doctor-extra-infor-container">
                 <div className="content-up">
@@ -98,26 +102,34 @@ class DoctorExtraInfor extends Component {
                                         <FormattedMessage id="patient.extra-infor-doctor.price" />
                                     </span>
                                     <span className="right">
-                                    {extraInfor && extraInfor.priceTypeData && language === LANGUAGES.VI
-                                        &&
-                                        <span className="currency">
-                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(extraInfor.priceTypeData.valueVi)}
-                                        </span>
-                                    }
-
-                                    {extraInfor && extraInfor.priceTypeData && language === LANGUAGES.EN
-                                        &&
-                                        <span className="currency">
-                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(extraInfor.priceTypeData.valueEn)}
-                                        </span>
-                                    }
-
+                                        {extraInfor && extraInfor.priceTypeData && language === LANGUAGES.VI &&
+                                            <span className="currency">
+                                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(extraInfor.priceTypeData.valueVi)}
+                                            </span>
+                                        }
+                                        {extraInfor && extraInfor.priceTypeData && language === LANGUAGES.EN &&
+                                            <span className="currency">
+                                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(extraInfor.priceTypeData.valueEn)}
+                                            </span>
+                                        }
                                     </span>
+                                </div>
+                                <div className="extra-price">
+                                    <FormattedMessage id="patient.extra-infor-doctor.extra-price" />:
+                                    {language === LANGUAGES.VI && 
+                                        <span>
+                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(priceVi)}
+                                        </span>
+                                    }
+                                    {language === LANGUAGES.EN && 
+                                        <span>
+                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(priceEn)}
+                                        </span>
+                                    }
                                 </div>
                                 <div className="note">
                                     {extraInfor && extraInfor.note ? extraInfor.note : ''}
                                 </div>
-
                             </div>
                             <div className="payment">
                                 <FormattedMessage id="patient.extra-infor-doctor.payment" />
@@ -133,7 +145,6 @@ class DoctorExtraInfor extends Component {
                             </div>
                         </>
                     }
-
                 </div>
             </div>
         );
@@ -146,9 +157,4 @@ const mapStateToProps = state => {
     };
 };
 
-const mapDispatchToProps = dispatch => {
-    return {
-    };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(DoctorExtraInfor);
+export default connect(mapStateToProps)(DoctorExtraInfor);

@@ -89,10 +89,10 @@ class ManagePatient extends Component {
                                             dataPatient.map((item, index) => {
                                                 // Định dạng ngày và thời gian khám
                                                 let formattedDate = moment(parseInt(item.date)).format('DD/MM/YYYY');
-                                                let timeSlot = language === LANGUAGES.VI ? 
-                                                    item.timeTypeDataPatient.valueVi : item.timeTypeDataPatient.valueEn;
+                                                let timeSlot = language === LANGUAGES.EN ? 
+                                                    item?.timeTypeDataPatient?.valueVi : item?.timeTypeDataPatient?.valueEn;
                                                 let gender = language === LANGUAGES.VI ?
-                                                    item.patientData.genderData.valueVi : item.patientData.genderData.valueEn;
+                                                    item?.patientData?.genderData?.valueVi : item?.patientData?.genderData?.valueEn;
                                                 
                                                 return (
                                                     <tr key={index}>

@@ -39,6 +39,14 @@ module.exports = {
       image: {
         type: Sequelize.STRING
       },
+      resetPasswordToken: {
+        type: Sequelize.STRING,   // Token dùng để reset mật khẩu
+        allowNull: true
+      },
+      resetPasswordExpires: {
+        type: Sequelize.BIGINT,   // Thời gian hết hạn của token
+        allowNull: true
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

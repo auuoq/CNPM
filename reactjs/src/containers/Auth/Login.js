@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { push } from "connected-react-router";
 import * as actions from "../../store/actions";
 import './Login.scss';
-import { FormattedMessage } from 'react-intl';
+// import { FormattedMessage } from 'react-intl';
 import { handleLoginApi } from '../../services/userService';
 
 
@@ -45,6 +45,7 @@ class Login extends Component {
             if (data && data.errCode === 0) {
                 this.props.userLoginSuccess(data.user);
                 console.log('login success');
+                this.props.navigate('/system/user-redux');
             }
         } catch (error) {
             if (error.response) {
@@ -95,7 +96,7 @@ class Login extends Component {
                                 <input
                                     className='form-control'
                                     type={this.state.isShowPassword ? 'text' : 'password'}
-                                    placeholder='Enter your password'
+                                    placeholder='Enter your password'a
                                     onChange={(event) => { this.handleOnChangePassword(event) }}
                                     onKeyDown={(event) => this.handleKeyDown(event)}
                                 />
@@ -109,16 +110,6 @@ class Login extends Component {
                         </div>
                         <div className='col-12'>
                             <button className='btn-login' onClick={() => { this.handleLogin() }}>Login</button>
-                        </div>
-                        <div className='col-12'>
-                            <span className='forgot-password'>Forgot your password?</span>
-                        </div>
-                        <div className='col-12 text-center mt-3'>
-                            <span className='text-other-login'>Or login with:</span>
-                        </div>
-                        <div className='col-12 social-login'>
-                            <i className="fab fa-google-plus-g google"></i>
-                            <i className="fab fa-facebook-f facebook"></i>
                         </div>
                     </div>
 

@@ -101,10 +101,10 @@ class HomeHeader extends Component {
                                 <div><b><FormattedMessage id="homeheader.doctor" /> </b></div>
                                 <div className='subs-title'><FormattedMessage id="homeheader.select-doctor" /></div>
                             </div>
-                            <div className='child-content' onClick={() => this.scrollToSection('fee-section')}>
+                            {/* <div className='child-content' onClick={() => this.scrollToSection('fee-section')}>
                                 <div><b><FormattedMessage id="homeheader.fee" /> </b></div>
                                 <div className='subs-title'><FormattedMessage id="homeheader.check-health" /></div>
-                            </div>
+                            </div> */}
                         </div>
                         <div className="right-content">
                             <div className="support">

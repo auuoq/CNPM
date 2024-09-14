@@ -50,6 +50,16 @@ class BookingModal extends Component {
     }
 
     async componentDidUpdate(prevProps, prevState, snapShot) {
+        if (this.props.userData !== prevProps.userData) {
+            // Automatically fill in the fields when userData is passed
+            let { firstName, lastName, email, phonenumber, address } = this.props.userData;
+            this.setState({
+                fullName: `${firstName} ${lastName}`,
+                phoneNumber: phonenumber || '',
+                email: email || '',
+                address: address || ''
+            });
+        }
         if (this.props.language !== prevProps.language) {
             this.setState({
                 genders: this.buildDataGender(this.props.genders)
@@ -121,18 +131,16 @@ class BookingModal extends Component {
     }
 
     handleConfirmBooking = async () => {
-        //validate input -> not yet implement in FE, currently validate in BE
-
         let date = new Date(this.state.birthday).getTime();
         let timeString = this.buildTimeBooking(this.props.dataTime);
         let doctorName = this.buildDoctorName(this.props.dataTime);
-
+    
         let res = await postPatientBookAppointment({
             fullName: this.state.fullName,
-            phonenumber: this.state.phoneNumber,    //need fix this line
+            phonenumber: this.state.phoneNumber,
             email: this.state.email,
             address: this.state.address,
-            reason: this.state.reason,
+            reason: this.state.reason,   
             date: this.props.dataTime.date,
             birthday: date,
             selectedGender: this.state.selectedGender.value,
@@ -141,15 +149,16 @@ class BookingModal extends Component {
             language: this.props.language,
             timeString: timeString,
             doctorName: doctorName
-        })
-
+        });
+    
         if (res && res.errCode === 0) {
             toast.success('Booking a new appointment succeed!');
             this.props.closeBookingModal();
         } else {
             toast.error('Booking a new appointment error!');
         }
-    }
+    };
+    
 
     render() {
         let { isOpenModal, closeBookingModal, dataTime } = this.props;
@@ -188,7 +197,7 @@ class BookingModal extends Component {
                                 isShowDescriptionDoctor={false}
                                 dataTime={dataTime}
                                 isSHowLinkDetail={false}
-                                isShowPrice={true}
+                                isShowPrice={false}
                             />
                         </div>
                         <div className="row">

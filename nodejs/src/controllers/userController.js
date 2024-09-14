@@ -170,6 +170,67 @@ const getDepositInfo = async (req, res) => {
 }
 
 
+let handleSendPasswordResetEmail = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(200).json({
+            errCode: 1,
+            errMessage: 'Thiếu email!'
+        });
+    }
+
+    try {
+        let message = await userService.handleSendPasswordResetEmail(email);
+        return res.status(200).json(message);
+    } catch (e) {
+        console.error('Error in handleSendPasswordResetEmail:', e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Đã xảy ra lỗi. Vui lòng thử lại sau.'
+        });
+    }
+};
+
+
+let handleResetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!token || !password) {
+        return res.status(400).json({
+            errCode: 1,
+            errMessage: 'Thiếu tham số cần thiết!'
+        });
+    }
+
+    try {
+        let message = await userService.handleResetPassword(token, password);
+        return res.status(200).json(message);
+    } catch (e) {
+        console.error('Error in handleResetPassword:', e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Lỗi từ server'
+        });
+    }
+};
+
+let handleChangePassword = async (req, res) => {
+    let userId = req.body.userId;
+    let currentPassword = req.body.currentPassword;
+    let newPassword = req.body.newPassword;
+
+    if (!userId || !currentPassword || !newPassword) {
+        return res.status(400).json({
+            errCode: 1,
+            errMessage: "Missing required parameters",
+        });
+    }
+
+    let response = await userService.handleChangePassword(userId, currentPassword, newPassword);
+    return res.status(200).json(response);
+};
 
 module.exports = {
     handleLogin: handleLogin,
@@ -181,5 +242,8 @@ module.exports = {
     handleGetAllUsersByEmail: handleGetAllUsersByEmail,
     getUserBookings: getUserBookings,
     deleteAppointment: deleteAppointment,
-    getDepositInfo: getDepositInfo
+    getDepositInfo: getDepositInfo,
+    handleResetPassword: handleResetPassword,
+    handleSendPasswordResetEmail: handleSendPasswordResetEmail,
+    handleChangePassword: handleChangePassword
 }

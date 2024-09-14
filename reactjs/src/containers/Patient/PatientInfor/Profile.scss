@@ -1,76 +1,101 @@
-// Profile.scss
-
 .profile-container {
     max-width: 800px;
-    margin: 0 auto;
+    margin: 50px auto;
     padding: 20px;
-    background: linear-gradient(to bottom, #ffffff, #f4f4f9);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+
+    h1 {
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    p {
+        font-size: 16px;
+        color: #555;
+        margin: 15px 0;
+        strong {
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            transition: border-color 0.3s ease;
+
+            &:focus {
+                border-color: #007bff;
+                outline: none;
+            }
+        }
+    }
+
+    button {
+        display: inline-block;
+        padding: 12px 20px;
+        margin: 15px 10px 0 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s;
+
+        &:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        &:focus {
+            outline: none;
+        }
+
+        &:last-of-type {
+            background-color: #6c757d;
+
+            &:hover {
+                background-color: #5a6268;
+            }
+        }
+    }
 }
 
-.profile-header {
-    margin-bottom: 20px;
-}
-
-.profile-header .profile-picture {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 4px solid #ddd;
-    background-size: cover;
-    background-position: center;
-    margin: 0 auto;
-}
-
-.profile-header h1 {
-    font-size: 24px;
-    color: #333;
-    margin: 10px 0;
-    font-family: 'Roboto', sans-serif;
-}
-
-.profile-container p {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 15px;
-    font-family: 'Roboto', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.profile-container p strong {
-    color: #333;
-    margin-right: 10px;
-}
-
-.profile-container p .info-icon {
-    margin-right: 10px;
-    color: #888;
-}
-
-.profile-container .loading, .profile-container .no-data {
-    font-size: 18px;
-    margin: 50px 0;
-}
-
-.profile-container .loading {
-    color: #888;
-}
-
-.profile-container .no-data {
-    color: #e74c3c;
-}
-
-// Adding media queries for responsive design
 @media (max-width: 768px) {
     .profile-container {
         padding: 15px;
     }
 
-    .profile-container p {
+    h1 {
+        font-size: 24px;
+    }
+
+    p {
+        font-size: 14px;
+
+        input, select {
+            padding: 8px;
+            font-size: 14px;
+        }
+    }
+
+    button {
+        padding: 10px 15px;
         font-size: 14px;
     }
 }

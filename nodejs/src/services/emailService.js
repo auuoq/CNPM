@@ -16,7 +16,7 @@ let sendSimpleEmail = async (dataSend) => {
 
     // send mail with defined transport object
     let info = await transporter.sendMail({
-        from: '"SERN22 👻" <serndev523@gmail.com>', // sender address
+        from: '"BKCare 👻" <serndev523@gmail.com>', // sender address
         to: dataSend.receiverEmail, // list of receivers
         subject: "Thông tin đặt lịch khám bệnh", // Subject line
         html: getBodyHTMLEmail(dataSend),
@@ -29,7 +29,7 @@ let getBodyHTMLEmail = (dataSend) => {
         result =
             `
         <h3>Xin chào ${dataSend.patientName}!</h3>
-        <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên SERN22</p>
+        <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên BKCare</p>
         <p>Thông tin đặt lịch khám bệnh:</p>
         <div><b>Thời gian khám bệnh: ${dataSend.time}</b></div>
         <div><b>Bác sĩ: ${dataSend.doctorName}</b></div>
@@ -46,7 +46,7 @@ let getBodyHTMLEmail = (dataSend) => {
         result =
             `
         <h3>Dear ${dataSend.patientName}!</h3>
-        <p>You received this email because you booked an online medical appointment on SERN22</p>
+        <p>You received this email because you booked an online medical appointment on BKCare</p>
         <p>Information to schedule an appointment:</p>
         <div><b>Time: ${dataSend.time}</b></div>
         <div><b>Doctor: ${dataSend.doctorName}</b></div>
@@ -78,7 +78,7 @@ let sendAttachment = async (dataSend) => {
 
             // send mail with defined transport object
             let info = await transporter.sendMail({
-                from: '"SERN22 👻" <serndev523@gmail.com>', // sender address
+                from: '"BKCare 👻" <serndev523@gmail.com>', // sender address
                 to: dataSend.email, // list of receivers
                 subject: "Kết quả đặt lịch khám bệnh", // Subject line
                 html: getBodyHTMLEmailRemedy(dataSend),
@@ -105,7 +105,7 @@ let getBodyHTMLEmailRemedy = (dataSend) => {
         result =
             `
         <h3>Xin chào ${dataSend.patientName}!</h3>
-        <p>Bạn nhận được email này vì đã đặt lịch khám bệnh online trên SERN22 thành công!</p>
+        <p>Bạn nhận được email này vì đã hoàn thành lịch khám bệnh đã đặt trên BKCare!</p>
         <p>Thông tin đơn thuốc/hóa đơn được gửi trong file đính kèm:</p>
 
         <div>Xin chân thành cảm ơn</div>
@@ -115,7 +115,7 @@ let getBodyHTMLEmailRemedy = (dataSend) => {
         result =
             `
         <h3>Dear ${dataSend.patientName}!</h3>
-        <p>You received this email because you booked an online medical appointment on SERN22</p>
+        <p>You received this email because you have completed the appointment you booked on BKCare!</p>
         <p>Information on prescription/receipt is included below:</p>
 
         <div>Sincerely thank!</div>
@@ -124,7 +124,55 @@ let getBodyHTMLEmailRemedy = (dataSend) => {
     return result;
 }
 
+let sendPasswordResetEmail = async (dataSend) => {
+    // create reusable transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.EMAIL_APP,
+            pass: process.env.EMAIL_APP_PASSWORD,
+        },
+    });
+
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+        from: '"BKCare 👻" <serndev523@gmail.com>',
+        to: dataSend.receiverEmail,
+        subject: "Đặt lại mật khẩu",
+        html: getBodyHTMLEmailResetPassword(dataSend),
+    });
+};
+
+let getBodyHTMLEmailResetPassword = (dataSend) => {
+    let result = '';
+    if (dataSend.language === 'vi') {
+        result = `
+            <h3>Xin chào ${dataSend.patientName}!</h3>
+            <p>Bạn nhận được email này vì đã yêu cầu đặt lại mật khẩu trên BKCare.</p>
+            <p>Vui lòng nhấp vào liên kết dưới đây để đặt lại mật khẩu của bạn:</p>
+            <div>
+                <a href=${dataSend.redirectLink} target="_blank">Đặt lại mật khẩu</a>
+            </div>
+            <div>Xin chân thành cảm ơn!</div>
+        `;
+    } else if (dataSend.language === 'en') {
+        result = `
+            <h3>Dear ${dataSend.patientName}!</h3>
+            <p>You received this email because you requested a password reset on BKCare.</p>
+            <p>Please click the link below to reset your password:</p>
+            <div>
+                <a href=${dataSend.redirectLink} target="_blank">Reset Password</a>
+            </div>
+            <div>Sincerely thank!</div>
+        `;
+    }
+    return result;
+};
+
 module.exports = {
     sendSimpleEmail: sendSimpleEmail,
-    sendAttachment: sendAttachment
-}
+    sendAttachment: sendAttachment,
+    sendPasswordResetEmail: sendPasswordResetEmail
+};

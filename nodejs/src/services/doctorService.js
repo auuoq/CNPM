@@ -221,34 +221,44 @@ let bulkCreateSchedule = (data) => {
                 resolve({
                     errCode: 1,
                     errMessage: 'Missing required parameter!'
-                })
+                });
             } else {
                 let schedule = data.arrSchedule;
                 if (schedule && schedule.length > 0) {
                     schedule = schedule.map(item => {
                         item.maxNumber = MAX_NUMBER_SCHEDULE;
                         return item;
-                    })
+                    });
                 }
 
-                //get all existing data
-                let existing = await db.Schedule.findAll(
-                    {
-                        where: { doctorId: data.doctorId, date: data.formatedDate },
-                        attributes: ['timeType', 'date', 'doctorId', 'maxNumber'],
-                        raw: true
-                    }
-                );
-
-                //compare diffrent
-                let toCreate = _.differenceWith(schedule, existing, (a, b) => {
-                    return a.timeType === b.timeType && +a.date === +b.date;
-                    //+a and +b -> to convert a, b to number -> fix bug duplicate in db schedule
+                // Lấy tất cả các lịch khám đã tồn tại
+                let existing = await db.Schedule.findAll({
+                    where: { doctorId: data.doctorId, date: data.formatedDate },
+                    attributes: ['id', 'timeType', 'date', 'doctorId', 'maxNumber'],
+                    raw: true
                 });
 
-                //create data
+                // Lấy các lịch cần tạo mới (những lịch không tồn tại trong DB)
+                let toCreate = _.differenceWith(schedule, existing, (a, b) => {
+                    return a.timeType === b.timeType && +a.date === +b.date;
+                });
+
+                // Lấy các lịch cần xóa (những lịch đã tồn tại nhưng không có trong lần chọn mới)
+                let toDelete = _.differenceWith(existing, schedule, (a, b) => {
+                    return a.timeType === b.timeType && +a.date === +b.date;
+                });
+
+                // Xóa những lịch cũ không còn trong lần chọn hiện tại
+                if (toDelete && toDelete.length > 0) {
+                    let idsToDelete = toDelete.map(item => item.id);
+                    await db.Schedule.destroy({
+                        where: { id: idsToDelete }
+                    });
+                }
+
+                // Tạo những lịch khám mới
                 if (toCreate && toCreate.length > 0) {
-                    await db.Schedule.bulkCreate(toCreate)
+                    await db.Schedule.bulkCreate(toCreate);
                 }
 
                 resolve({
@@ -259,8 +269,9 @@ let bulkCreateSchedule = (data) => {
         } catch (e) {
             reject(e);
         }
-    })
-}
+    });
+};
+
 
 let getScheduleByDate = (doctorId, date) => {
     return new Promise(async (resolve, reject) => {
@@ -279,24 +290,24 @@ let getScheduleByDate = (doctorId, date) => {
                     include: [
                         { model: db.Allcode, as: 'timeTypeData', attributes: ['valueEn', 'valueVi'] },
                         { model: db.User, as: 'doctorData', attributes: ['firstName', 'lastName'] },
-
                     ],
+                    attributes: ['currentNumber', 'maxNumber', 'timeType', 'date', 'doctorId'],
                     raw: false,
                     nest: true
-                })
+                });
 
                 if (!dataSchedule) dataSchedule = [];
                 resolve({
                     errCode: 0,
                     data: dataSchedule
-                })
+                });
             }
-
         } catch (e) {
             reject(e);
         }
-    })
-}
+    });
+};
+
 
 let getExtraInforDoctorById = (idInput) => {
     return new Promise(async (resolve, reject) => {

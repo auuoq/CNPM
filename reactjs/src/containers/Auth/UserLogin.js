@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { push } from "connected-react-router";
 import * as actions from "../../store/actions";
 import './Login.scss';
-import { FormattedMessage } from 'react-intl';
+// import { FormattedMessage } from 'react-intl';
 import { handleLoginApi } from '../../services/userService';
 
 class UserLogin extends Component {
@@ -67,6 +67,16 @@ class UserLogin extends Component {
         }
     }
 
+    // Handle redirect to register page
+    handleRedirectToRegister = () => {
+        this.props.navigate('/register'); // Điều hướng đến trang đăng ký
+    }
+
+    // Handle redirect to forgot password page
+    handleRedirectToForgotPassword = () => {
+        this.props.navigate('/forgot-password'); // Điều hướng đến trang Quên mật khẩu
+    }
+
     render() {
         return (
             <div className='login-background'>
@@ -103,6 +113,24 @@ class UserLogin extends Component {
                         <div className='col-12'>
                             <button className='btn-login' onClick={this.handleLogin}>Login</button>
                         </div>
+                        <div className='col-12'>
+                            <button className='btn-register' onClick={this.handleRedirectToRegister}>Register</button>
+                        </div>
+                        <div className='col-12'>
+                            <span className='forgot-password' onClick={this.handleRedirectToForgotPassword}>
+                                Forgot your password?
+                            </span>
+                        </div>
+                        <div className='col-12 text-center mt-3'>
+                            <span className='text-other-login'>Or login with:</span>
+                        </div>
+                        <div className='col-12 social-login'>
+                            <i className="fab fa-google-plus-g google"></i>
+                            <i className="fab fa-facebook-f facebook"></i>
+                        </div>
+                        {/* <div className='col-12'>
+                            <button className='btn-forgot-password' onClick={this.handleRedirectToForgotPassword}>Forgot Password?</button>
+                        </div> */}
                     </div>
                 </div>
             </div>

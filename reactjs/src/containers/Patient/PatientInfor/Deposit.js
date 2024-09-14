@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import './Deposit.scss';
-import { getDepositInfo } from '../../../services/userService';
+import { getDepositInfo, postVerifyBookAppointment } from '../../../services/userService';
 import HomeHeader from '../../HomePage/HomeHeader';
 
 class Deposit extends Component {
@@ -9,11 +9,12 @@ class Deposit extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            appointmentId: null, // Để lưu appointmentId được truyền qua URL
+            appointmentId: null, // Lưu appointmentId lấy từ URL
             depositAmount: '', // Số tiền đặt cọc
             depositInfo: null, // Dữ liệu đặt cọc từ API
             loading: true, // Trạng thái tải dữ liệu
-            error: null // Lỗi nếu có
+            error: null, // Lưu lỗi nếu có
+            successMessage: '', // Lưu thông báo thành công
         };
     }
 
@@ -26,12 +27,19 @@ class Deposit extends Component {
             let response = await getDepositInfo(appointmentId);
             if (response && response.data.errCode === 0) {
                 const depositInfo = response.data.data[0]; // Lấy phần tử đầu tiên của mảng data
-                const price = parseFloat(depositInfo.doctorBooking.priceTypeData.valueVi.replace(/,/g, '')); // Chuyển giá thành số và loại bỏ dấu phân cách ngàn
-                const depositAmount = (price / 2).toFixed(0); // Tính số tiền cọc và làm tròn số
+                let price = parseFloat(depositInfo.doctorBooking.priceTypeData.valueVi.replace(/,/g, '')); // Chuyển giá thành số
+
+                // Check if timeType is T9, T10, T11, T12, or T13, increase price by 50%
+                if (['T9', 'T10', 'T11', 'T12', 'T13'].includes(depositInfo.timeType)) {
+                    price = price * 1.5; // Increase price by 50%
+                }
+
+                const depositAmount = (price / 2).toFixed(0); // Tính số tiền cọc (50%)
 
                 this.setState({ 
                     depositInfo,
                     depositAmount,
+                    adjustedPrice: price, // Lưu giá đã tăng vào state để hiển thị
                     loading: false 
                 });
             } else {
@@ -49,29 +57,45 @@ class Deposit extends Component {
         }
     }
 
-    handleDepositChange = (event) => {
-        this.setState({ depositAmount: event.target.value });
-    };
-
-    handleSubmit = (event) => {
+    handleSubmit = async (event) => {
         event.preventDefault();
         const { appointmentId, depositAmount } = this.state;
-        console.log(`Đặt cọc cho lịch hẹn ${appointmentId} với số tiền ${depositAmount}`);
 
-        // Thêm logic gọi API thực hiện việc đặt cọc ở đây
+        try {
+            const data = {
+                token: this.state.depositInfo.token,
+                doctorId: this.state.depositInfo.doctorId
+            };
+
+            const response = await postVerifyBookAppointment(data);
+
+            if (response && response.errCode === 0) {
+                this.setState({ 
+                    successMessage: 'Đặt cọc thành công!', 
+                    error: null 
+                });
+            } else {
+                this.setState({ 
+                    error: response.errMessage || 'Error verifying appointment', 
+                    successMessage: null 
+                });
+            }
+        } catch (error) {
+            console.log('Error verifying appointment:', error);
+            this.setState({ 
+                error: 'Failed to verify appointment',
+                successMessage: null 
+            });
+        }
     };
 
     render() {
-        const { appointmentId, depositAmount, depositInfo, loading, error } = this.state;
-
+        const { appointmentId, depositAmount, depositInfo, adjustedPrice, loading, error, successMessage } = this.state;
+    
         if (loading) {
             return <div className="loading">Loading...</div>;
         }
-
-        if (error) {
-            return <div className="error">Error: {error}</div>;
-        }
-
+    
         return (
             <>
             <HomeHeader />
@@ -84,22 +108,37 @@ class Deposit extends Component {
                     {depositInfo && depositInfo.doctorBooking && (
                         <div className="deposit-info">
                             <p><strong>Thông tin bác sĩ:</strong></p>
+                            {depositInfo.doctorData.image && (
+                                <div className="doctor-image">
+                                    <img 
+                                        src={depositInfo.doctorData.image} 
+                                        alt={`${depositInfo.doctorData.firstName} ${depositInfo.doctorData.lastName}`} 
+                                    />
+                                </div>
+                            )}
+                            <p>Họ tên: {depositInfo.doctorData.firstName} {depositInfo.doctorData.lastName}</p>
                             <p>Tên phòng khám: {depositInfo.doctorBooking.nameClinic}</p>
                             <p>Địa chỉ phòng khám: {depositInfo.doctorBooking.addressClinic}</p>
-                            <p>Giá: {depositInfo.doctorBooking.priceTypeData?.valueVi} VND</p>
-                            <p><strong>Số tiền đặt cọc (50%): {depositAmount} VND</strong></p>
+                            <p>Giá: {adjustedPrice.toLocaleString()} VND</p> {/* Hiển thị giá đã tăng */}
+                            <p><strong>Số tiền đặt cọc (50%): {depositAmount} VND</strong></p> {/* Hiển thị số tiền cọc */}
                         </div>
                     )}
                     <form onSubmit={this.handleSubmit} className="deposit-form">
                         <label>Số tiền đặt cọc:</label>
-                        <p>{depositAmount} VND</p> {/* Hiển thị số tiền cọc */}
+                        <p>{depositAmount} VND</p> {/* Hiển thị số tiền cọc */} 
                         <button type="submit">Xác nhận đặt cọc</button>
                     </form>
+                    {successMessage && (
+                        <div className="success-message">
+                            <p>{successMessage}</p>
+                        </div>
+                    )}
+                    {error && <div className="error-message">{error}</div>}
                 </div>
             </div></>
         );
     }
-}
+}    
 
 const mapStateToProps = state => {
     return {

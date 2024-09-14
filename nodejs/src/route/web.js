@@ -31,6 +31,10 @@ let initWebRoutes = (app) => {
     router.get('/api/get-user-booking', userController.getUserBookings);
     router.delete('/api/delete-appointment', userController.deleteAppointment);
     router.get('/api/get-deposit-info', userController.getDepositInfo);
+    router.post('/api/send-password-reset-email', userController.handleSendPasswordResetEmail);
+    router.post('/api/reset-password/:token', userController.handleResetPassword);
+    app.post('/api/change-password', userController.handleChangePassword);
+
 
     //doctors
     router.get('/api/top-doctor-home', doctorController.getTopDoctorHome);

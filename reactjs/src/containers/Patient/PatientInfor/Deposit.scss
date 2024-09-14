@@ -6,7 +6,7 @@
     background-color: #f7f9fc;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    
+
     .deposit-header {
         background-color: #007bff;
         color: #fff;
@@ -49,6 +49,18 @@
             strong {
                 color: #007bff;
                 font-weight: bold;
+            }
+
+            .doctor-image {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 15px;
+
+                img {
+                    max-width: 100px; // Đặt kích thước tối đa cho ảnh
+                    border-radius: 50%; // Làm tròn ảnh
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // Thêm bóng cho ảnh
+                }
             }
         }
 
@@ -103,13 +115,37 @@
                 }
             }
         }
+        .success-message {
+            text-align: center;
+            font-size: 18px;
+            color: #28a745;
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #28a745;
+            border-radius: 4px;
+            background-color: #eafaf1;
+        }
+
+        .error-message {
+            text-align: center;
+            font-size: 18px;
+            color: #d9534f;
+            margin: 20px 0;
+        }
     }
 
     .loading,
     .error {
         text-align: center;
         font-size: 18px;
-        color: #d9534f;
         margin: 20px 0;
+
+        &.loading {
+            color: #007bff; // Màu sắc khi đang tải
+        }
+
+        &.error {
+            color: #d9534f; // Màu sắc khi có lỗi
+        }
     }
 }

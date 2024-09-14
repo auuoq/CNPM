@@ -143,34 +143,35 @@ class ManagePatient extends Component {
                                             <th>Giới tính</th>
                                             <th>Actions</th>
                                         </tr>
-                                        {dataPatient && dataPatient.length > 0 ?
-                                            dataPatient.map((item, index) => {
-                                                let time = language === LANGUAGES.VI ?
-                                                    item.timeTypeDataPatient.valueVi : item.timeTypeDataPatient.valueEn
-                                                let gender = language === LANGUAGES.VI ?
-                                                    item.patientData.genderData.valueVi : item.patientData.genderData.valueEn
-                                                return (
-                                                    <tr key={index}>
-                                                        <td>{index + 1}</td>
-                                                        <td>{time}</td>
-                                                        <td>{item.patientData.firstName}</td>
-                                                        <td>{item.patientData.address}</td>
-                                                        <td>{gender}</td>
-                                                        <td>
-                                                            <button className="mp-btn-confirm"
-                                                                onClick={() => this.handleBtnConfirm(item)}
-                                                            >Xác nhận
-                                                            </button>
-                                                            
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            })
-                                            :
-                                            <tr>
-                                                <td colSpan="6" style={{ textAlign: 'center' }}>no data</td>
-                                            </tr>
-                                        }
+                                        {dataPatient && dataPatient.length > 0 ? 
+                                        dataPatient.map((item, index) => {
+                                            let time = language === LANGUAGES.VI ?
+                                                item?.timeTypeDataPatient?.valueVi : item?.timeTypeDataPatient?.valueEn;
+                                            let gender = language === LANGUAGES.VI ?
+                                                item?.patientData?.genderData?.valueVi : item?.patientData?.genderData?.valueEn;
+
+                                            return (
+                                                <tr key={index}>
+                                                    <td>{index + 1}</td>
+                                                    <td>{time}</td>
+                                                    <td>{item?.patientData?.firstName}</td>
+                                                    <td>{item?.patientData?.address}</td>
+                                                    <td>{gender}</td>
+                                                    <td>
+                                                        <button className="mp-btn-confirm"
+                                                            onClick={() => this.handleBtnConfirm(item)}
+                                                        >Xác nhận đã khám
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                        :
+                                        <tr>
+                                            <td colSpan="6" style={{ textAlign: 'center' }}>Không có dữ liệu</td>
+                                        </tr>
+                                    }
+
                                     </tbody>
                                 </table>
                             </div>

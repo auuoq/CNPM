@@ -54,6 +54,11 @@ const getAllCodeService = (inputType) => {
     return axios.get(`/api/allcode?type=${inputType}`)
 }
 
+export const changePassword = (data) => {
+    return axios.post('/api/change-password', data);
+};
+
+
 const getTopDoctorHomeService = (limit) => {
     return axios.get(`/api/top-doctor-home?limit=${limit}`)
 }
@@ -130,6 +135,13 @@ const postSendRemedy = (data) => {
     return axios.post(`/api/send-remedy`, data);
 }
 
+const sendPasswordResetEmail = (email) => {
+    return axios.post('/api/send-password-reset-email', { email });
+};
+
+const resetPassword = (token, password) => {
+    return axios.post(`/api/reset-password/${token}`, { password });
+};
 export {
     handleLoginApi, getAllUsers,
     createNewUserService, deleteUserService,
@@ -142,5 +154,5 @@ export {
     getAllSpecialty, getAllDetailSpecialtyById,
     createNewClinic, getAllClinic, getAllDetailClinicById,
     getAllPatientForDoctor, postSendRemedy,getAllPatientsWithStatusS3,
-    getUserInfoByEmail,getUserBookings,deleteAppointment,getDepositInfo
+    getUserInfoByEmail,getUserBookings,deleteAppointment,getDepositInfo,sendPasswordResetEmail,resetPassword
 }

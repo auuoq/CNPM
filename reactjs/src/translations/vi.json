@@ -79,7 +79,8 @@
             "price": "Giá khám: ",
             "detail": "Xem chi tiết",
             "payment": "Người bệnh có thể thanh toán chi phí bằng hình thức: ",
-            "hide-price": "Ẩn bảng giá"
+            "hide-price": "Ẩn bảng giá",
+            "extra-price": "Giá ngoài giờ (17:00 - 22:00)"
         },
         "booking-modal": {
             "title": "Thông tin đặt lịch khám bệnh",
